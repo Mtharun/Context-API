@@ -1,5 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;1,500&display=swap');
+.container{
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+.card-head{
+  display: flex;
+  justify-content: space-between;
+  align-items:center ;
+}
+.card-down{
+  display: flex;
+  justify-content: space-between;
+}
+.selection {
+  margin-top: 50px;
+}
+.remove{
+  margin-left: 700px;
+}
 
-body{
-    font-family: 'poppins';
+.end{
+  margin-left: 870px;  
 }

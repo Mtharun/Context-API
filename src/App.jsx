@@ -1,250 +1,227 @@
-import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import { createContext, useState ,useContext } from "react";
 import "./App.css";
+import { Dropdown } from "react-bootstrap";
 
-const api = axios.create({
-  baseURL: "https://run.mocky.io/v3/30ebb445-42bd-4afc-9efb-5e0a6d04ac70",
-});
 
-const App = () => {
-  const inputName = useRef(null);
-  const inputEmail = useRef(null);
-  const inputPhone = useRef(null);
-  const inputWebsite = useRef(null);
+const ShopCtx = createContext();
 
-  const [users, setUsers] = useState([]);
-  const [editingUser, setEditingUser] = useState(null);
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    website: "",
-  });
+function App() {
+  const products = [
+    {
+      id: 1,
+      title: "iPhone 9",
+      description: "An apple mobile which is nothing like apple",
+      price: 549,
+      discountPercentage: 12.96,
+      rating: 4.69,
+      stock: 94,
+      brand: "Apple",
+      category: "I phone",
+      thumbnail: "https://i.dummyjson.com/data/products/1/thumbnail.jpg",
+      images: [
+        "https://i.dummyjson.com/data/products/1/1.jpg",
+        "https://i.dummyjson.com/data/products/1/2.jpg",
+        "https://i.dummyjson.com/data/products/1/3.jpg",
+        "https://i.dummyjson.com/data/products/1/4.jpg",
+        "https://i.dummyjson.com/data/products/1/thumbnail.jpg",
+      ],
+    },
+    {
+      id: 2,
+      title: "iPhone X",
+      description:
+        "SIM-Free, Model A19211 6.5-inch Super Retina HD display with OLED technology A12 Bionic chip with ...",
+      price: 899,
+      discountPercentage: 17.94,
+      rating: 4.44,
+      stock: 34,
+      brand: "Apple",
+      category: "I phone",
+      thumbnail: "https://i.dummyjson.com/data/products/2/thumbnail.jpg",
+      images: [
+        "https://i.dummyjson.com/data/products/2/1.jpg",
+        "https://i.dummyjson.com/data/products/2/2.jpg",
+        "https://i.dummyjson.com/data/products/2/3.jpg",
+        "https://i.dummyjson.com/data/products/2/thumbnail.jpg",
+      ],
+    },
+    {
+      id: 3,
+      title: "Samsung Universe 9",
+      description:
+        "Samsung's new variant which goes beyond Galaxy to the Universe",
+      price: 1249,
+      discountPercentage: 15.46,
+      rating: 4.09,
+      stock: 36,
+      brand: "Samsung",
+      category: "smartphones",
+      thumbnail: "https://i.dummyjson.com/data/products/3/thumbnail.jpg",
+      images: ["https://i.dummyjson.com/data/products/3/1.jpg"],
+    },
+    {
+      id: 4,
+      title: "OPPOF19",
+      description: "OPPO F19 is officially announced on April 2021.",
+      price: 280,
+      discountPercentage: 17.91,
+      rating: 4.3,
+      stock: 123,
+      brand: "OPPO",
+      category: "smartphones",
+      thumbnail: "https://i.dummyjson.com/data/products/4/thumbnail.jpg",
+      images: [
+        "https://i.dummyjson.com/data/products/4/1.jpg",
+        "https://i.dummyjson.com/data/products/4/2.jpg",
+        "https://i.dummyjson.com/data/products/4/3.jpg",
+        "https://i.dummyjson.com/data/products/4/4.jpg",
+        "https://i.dummyjson.com/data/products/4/thumbnail.jpg",
+      ],
+    },
+    {
+      id: 5,
+      title: "Huawei P30",
+      description:
+        "Huawei’s re-badged P30 Pro New Edition was officially unveiled yesterday in Germany and now the device has made its way to the UK.",
+      price: 499,
+      discountPercentage: 10.58,
+      rating: 4.09,
+      stock: 32,
+      brand: "Huawei",
+      category: "smartphones",
+      thumbnail: "https://i.dummyjson.com/data/products/5/thumbnail.jpg",
+      images: [
+        "https://i.dummyjson.com/data/products/5/1.jpg",
+        "https://i.dummyjson.com/data/products/5/2.jpg",
+        "https://i.dummyjson.com/data/products/5/3.jpg",
+      ],
+    },
+  ];
 
-  const [validationError, setValidationError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [product, setProduct] = useState(products);
+  const [quantities , setQuantities] = useState({})
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  return (
+    <ShopCtx.Provider
+      value={{
+        product,
+        setProduct,
+        quantities,
+        setQuantities
+      }}
+    >
+      <ProductCard/>
+    </ShopCtx.Provider>
+  );
+}
 
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get("/users");
-      setUsers(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error on fetching", error);
-      setLoading(false);
-    }
-  };
+function ProductCard() {
+  const {product, setProduct, quantities, setQuantities} = useContext(ShopCtx);
+  
+  
 
-  const createUser = async () => {
-    if (!newUser.name || !newUser.email || !newUser.phone || !newUser.website) {
-      setValidationError(true);
-      return;
-    }
-    try {
-      setValidationError(false);
-      const response = await api.post("/users", newUser);
-      const newUserWithId = { ...newUser, id: response.data.id };
-      setUsers([...users, newUserWithId]);
-      setNewUser({
-        name: "",
-        email: "",
-        phone: "",
-        website: "",
-      });
-      alert("New User Created Successfully");
-      setEditingUser(null);
-    } catch (error) {
-      console.error("Error creating user:", error);
-    }
-  };
-  const updateUser = async (id) => {
-    try {
-      setValidationError(false);
-      await api.put(`/users/${id}`, editingUser); // Use a relative path here
-      const updatedUsers = users.map((user) =>
-        user.id === id ? { ...user, ...editingUser } : user
-      );
-      setUsers(updatedUsers);
-      alert("User Details Updated Successfully");
-      setEditingUser(null);
-    } catch (error) {
-      console.error("Error updating user:", error);
-    }
-  };
+  const onhandleChange = (productID, quantity) =>{
+    setQuantities({
+      ...quantities,
+      [productID]:quantity
+    })
+  }
 
-  const deleteUser = async (id) => {
-    try {
-      await api.delete(`/users/${id}`); // Use a relative path here
-      const updatedUsers = users.filter((user) => user.id !== id);
-      setUsers(updatedUsers);
-      alert("User Details Deleted Successfully");
-    } catch (error) {
-      console.error("Error deleting user:", error);
-    }
-  };
-
-  const handleEditUser = (user) => {
-    setEditingUser({ ...user });
-    inputName.current.focus();
-  };
-
-  const handleFieldChange = (field, value) => {
-    if (!editingUser) {
-      setNewUser({ ...newUser, [field]: value });
-    } else {
-      setEditingUser({ ...editingUser, [field]: value });
-    }
+  const removeItem = (productID) => {
+    const updateProducts = product.filter((pro) => pro.id !== productID);
+    setProduct(updateProducts);
   };
 
   return (
-<div className="container">
-  
-  <h1 className="text-center m-4">React AXIOS </h1>
-  
-  <div className="row justify-content-center">
-    <div className="col-lg-6 bg-light">
-  
-      <form className="form-data">
-        <h4 className="mb-4">{editingUser ? "Edit Person Details 👤" : "Create Person Details 👤"}</h4>
-        <div className="input-group mb-3">
+    <div>
+      {product.map((pro, idx) => (
+        <div key={idx} className="container">
+          <div className="card mb-3">
+            <div className="row g-1">
+              <div className="col-md-3">
+                <img
+                  src={pro.thumbnail}
+                  className="img-fluid rounded-start"
+                  alt="Books"
+                />
+              </div>
+              <div className="col-md-9">
+                <div className="card-body">
+                  <div className="card-head">
+                    <h1 className="card-title">{pro.title}</h1>
 
-          <div className="input-group-prepend">
-            <span className="input-group-text">Person Name</span>
-          </div>
-          <input
-            ref={inputName}
-            type="text"
-            name="name"
-            required
-            value={editingUser ? editingUser.name : newUser.name}
-            placeholder="Enter Your Name"
-            className="form-control input-text"
-            onChange={(e) => handleFieldChange("name", e.target.value)}
-          />
-        </div>
+                    <div className="dropdown">
+                      <button
+                        className="dropdown-toggle"
+                        href="#"
+                        id="dropdownMenuButton"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        
+                      >
+                        <span className="badge badge-pill text-danger bg-white">
+                          {quantities[pro.id]||1}
+                        </span>
+                      </button>
+                      <div
+                        className="dropdown-menu"
+                        aria-labelledby="dropdownMenuLink"
+                      >
+                        {[1,2,3].map((quantity) => (
+                          <Dropdown.Item
+                           key={quantity} 
+                          onClick={() => onhandleChange(pro.id, quantity)}
+                          >
+                            {quantity}
+                          </Dropdown.Item>
+                        ))}
+                        
+                      </div>
+                    </div>
 
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text">Person Email</span>
-          </div>
-          <input
-            ref={inputEmail}
-            type="text"
-            name="email"
-            required
-            value={editingUser ? editingUser.email : newUser.email}
-            placeholder="Enter your Email"
-            className="form-control input-text"
-            onChange={(e) => handleFieldChange("email", e.target.value)}
-          />
-        </div>
+                    <h4>${pro.price}</h4>
+                  </div>
 
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text">Person Number</span>
+                  <h6>{pro.brand}</h6>
+                  <p className="card-text">{pro.description}</p>
+                  <button
+                    className="remove btn text-danger"
+                    onClick={() => removeItem(pro.id)}
+                  >
+                    REMOVE
+                  </button>
+                  <p className="card-text">
+                    <small className="text-body-secondary">
+                      {pro.category}
+                    </small>
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <input
-            ref={inputPhone}
-            type="text"
-            name="phone"
-            required
-            value={editingUser ? editingUser.phone : newUser.phone}
-            placeholder="Enter Your Phone Number"
-            className="form-control input-text"
-            onChange={(e) => handleFieldChange("phone", e.target.value)}
-          />
-        </div>
 
-        <div className="input-group mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text">Person Website</span>
+          <div className="card-down">
+            <p className="text-secondary">SUBTOTAL :</p>
+            <p>{(quantities[pro.id]||1) * pro.price}</p>
           </div>
-          <input
-            ref={inputWebsite}
-            type="text"
-            name="website"
-            required
-            value={editingUser ? editingUser.website : newUser.website}
-            placeholder="Enter your Website"
-            className="form-control input-text"
-            onChange={(e) => handleFieldChange("website", e.target.value)}
-          />
-        </div>
-        <br></br>
-        {validationError && (
-          <p className="validation-error text-justify">Please fill the required fields</p>
-        )}
-        {editingUser ? (
-          <div className="">
-            <button
-            type="button"
-              className="btn btn-outline-success mr-2"
-              onClick={() => updateUser(editingUser.id)}
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => setEditingUser(null)}
-            >
-              Cancel
-            </button>
+          <div className="card-down">
+            <p className="text-secondary">SHIPPING :</p>
+            <p>FREE</p>
           </div>
-        ) : (
-          <div>
-            <button
-              type="button"
-              className="btn btn-outline-success"
-              onClick={createUser}
-            >
-              Create
-            </button>
+          <hr></hr>
+          <div className="card-down">
+            <h6>TOTAL:</h6>
+            <h6>{(quantities[pro.id]||1) * pro.price}</h6>
           </div>
-        )}
-      </form>
-    </div>
-  </div>
-
-          <br></br>
-    
-      <div className="row justify-content-center">
-      {users.map((user) => (
-        <div key={user.id} className="col-lg-4 card text-white bg-dark m-3" style={{ width: "18rem" }}>
-          <img src="./" className="card-img-top" alt="" />
-          <div className="card-body bg-dark">
-            <h5 className="card-title text-center">{user.name}</h5>
-            <ul className="card-body  d-flex flex-column justify-content-center align-items-center">
-            {user.email && <li style={{listStyleType:"none"}}className="card-text">{user.email}</li>}
-            {user.phone && <li style={{listStyleType:"none"}} className="card-text">{user.phone}</li>}
-            {user.website && (
-              <li style={{listStyleType:"none"}} className="card-text">{user.website}</li>
-            )}
-          </ul>
-          <div className="row justify-content-center">
-          <a
-              className="btn btn-success mx-2"
-              onClick={() => handleEditUser(user)}
-            >
-              EDIT
-            </a>
-            <a className="btn btn-danger" onClick={() => deleteUser(user.id)}>
-              DELETE
+          <div className="end">
+            <a href="#" className="text-danger">
+              Get Daily Cash With Nespola Card
             </a>
           </div>
-          
-          </div>
-        
         </div>
       ))}
-      </div>
-      
     </div>
   );
-};
-
+}
 export default App;
